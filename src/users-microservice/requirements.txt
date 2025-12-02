@@ -1,0 +1,7 @@
+flask
+psycopg2-binary # Driver para PostgreSQL
+sqlalchemy # ORM para interactuar con la BBDD
+flask-sqlalchemy
+python-dotenv
+pyjwt # Para JSON Web Tokens (JWT) para sesiones [cite: 35]
+bcrypt # Para hashear contraseñas

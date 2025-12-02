@@ -1,0 +1,4 @@
+flask
+pymongo # Driver para MongoDB
+requests # Para consultar APIs externas como OpenAQ
+python-dotenv # Para manejar variables de entorno

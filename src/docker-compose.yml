@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # 1. Base de Datos No Relacional (Datos de Contaminantes - MongoDB)
+  mongodb:
+    image: mongo:latest
+    container_name: ecotrack_mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ecouser
+      MONGO_INITDB_ROOT_PASSWORD: ecopassword
+      MONGO_INITDB_DATABASE: ecotrack_data
+    # Usar un volumen para persistencia de datos de MongoDB (OPCIONAL pero recomendado)
+    volumes:
+      - mongodb_data:/data/db
+
+  # 2. Microservicio de Datos (API RESTful - Python/Flask)
+  data-microservice:
+    build:
+      context: ./data-microservice
+      dockerfile: Dockerfile
+    container_name: ecotrack_data_service
+    # Expone el puerto 5000 para consultas de la API
+    ports:
+      - "5000:5000" 
+    depends_on:
+      - mongodb
+    environment:
+      MONGO_URI: mongodb://ecouser:ecopassword@mongodb:27017/ecotrack_data?authSource=admin
+      
+  # 3. Worker de Recolección (Tarea programada ETL - Python)
+  data-collector-worker:
+    build:
+      context: ./data-microservice
+      dockerfile: Dockerfile
+    container_name: ecotrack_data_collector
+    depends_on:
+      - mongodb
+    environment:
+      # Debe usar la misma configuración de BBDD que el microservicio
+      MONGO_URI: mongodb://ecouser:ecopassword@mongodb:27017/ecotrack_data?authSource=admin
+    # Sobreescribe el comando de inicio para ejecutar el worker.py
+    command: ["python", "worker.py"]
+
+  # 4. Base de Datos Relacional (Usuarios y Preferencias - PostgreSQL)
+  postgres:
+    image: postgres:14-alpine
+    container_name: ecotrack_postgres
+    # Expone el puerto 5432
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ecotrack_users_db
+    volumes:
+      # Persistencia de los datos de PostgreSQL
+      - postgres_data:/var/lib/postgresql/data/
+      # Montamos el script de inicialización
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql 
+
+  # 5. Microservicio de Usuarios (API RESTful - Python/Flask)
+  users-microservice:
+    build:
+      context: ./users-microservice
+      dockerfile: Dockerfile
+    container_name: ecotrack_users_service
+    # Expone el puerto 5001
+    ports:
+      - "5001:5001" 
+    depends_on:
+      - postgres
+    environment:
+      # El Microservicio de Usuarios se conectará a 'postgres' usando su nombre de servicio
+      POSTGRES_URI: postgresql://user:password@postgres:5432/ecotrack_users_db
+      JWT_SECRET_KEY: "super-secreto-de-ecotrack-cambiar-en-prod"
+
+# Definición de Volúmenes de persistencia
+volumes:
+  postgres_data:
+  mongodb_data:
