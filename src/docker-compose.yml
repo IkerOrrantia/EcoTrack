@@ -76,6 +76,19 @@ services:
       POSTGRES_URI: postgresql://user:password@postgres:5432/ecotrack_users_db
       JWT_SECRET_KEY: "super-secreto-de-ecotrack-cambiar-en-prod"
 
+  # 6. API Gateway (Node.js/Express)
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: ecotrack_api_gateway
+    ports:
+      # Este es el unico puerto de acceso publico para el Frontend
+      - "8080:8080" 
+    depends_on:
+      - data-microservice
+      - users-microservice
+
 # Definición de Volúmenes de persistencia
 volumes:
   postgres_data:
