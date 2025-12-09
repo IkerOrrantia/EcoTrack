@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem('jwt_token');
     if (storedToken) {
       setToken(storedToken);
+      setAuthToken(storedToken);
     }
   }, []);
   
@@ -25,7 +26,8 @@ export const AuthProvider = ({ children }) => {
       
       setToken(newToken);
       localStorage.setItem('jwt_token', newToken); // Guardar el token en el navegador
-      
+      setAuthToken(newToken);
+
       // Opcional: Redirigir al usuario al dashboard
       navigate('/dashboard'); 
       return true;
@@ -40,6 +42,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setToken(null);
     localStorage.removeItem('jwt_token');
+    setAuthToken(null);
     navigate('/login');
   };
   
