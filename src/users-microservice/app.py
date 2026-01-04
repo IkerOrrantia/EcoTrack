@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import os
 import bcrypt # Para hasheo de contraseñas
@@ -7,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 from functools import wraps # Para el decorador JWT
 
 app = Flask(__name__)
-
+CORS(app)
 # --- CONFIGURACIÓN Y CONEXIÓN ---
 
 # Configuración de PostgreSQL (Usa las credenciales definidas en docker-compose)

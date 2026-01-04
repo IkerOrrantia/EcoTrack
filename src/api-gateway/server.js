@@ -1,38 +1,42 @@
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const cors = require('cors'); // ⚠️ Importante
 
 const app = express();
-const PORT = 8080; // Puerto único de acceso público
+const PORT = 8080;
 
-// --- Rutas de Orquestación ---
+// 1. Habilitar CORS GLOBALMENTE antes de los Proxies
+// Esto añade automáticamente las cabeceras correctas a todas las rutas
+app.use(cors({
+    origin: '*', // En producción usarías 'http://localhost:5173'
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-// 1. Proxy para el Microservicio de Usuarios (Puerto 5001)
-// Prefijo: /api/v1/users/ o /api/v1/favorites/
+// 2. Rutas de Proxy
+// El Gateway redirige el tráfico interno de Docker
+
+// Proxy para Usuarios y Favoritos
 app.use('/api/v1/users', createProxyMiddleware({ 
-    target: 'http://users-microservice:5001', // Nombre del servicio en Docker Compose
+    target: 'http://users-microservice:5001', 
     changeOrigin: true 
 }));
+
 app.use('/api/v1/favorites', createProxyMiddleware({ 
     target: 'http://users-microservice:5001', 
     changeOrigin: true 
 }));
 
-// 2. Proxy para el Microservicio de Datos (Puerto 5000)
-// Prefijo: /api/v1/data/
+// Proxy para Datos (Flask)
 app.use('/api/v1/data', createProxyMiddleware({ 
-    target: 'http://data-microservice:5000', // Nombre del servicio en Docker Compose
-    changeOrigin: true 
+    target: 'http://data-microservice:5000', 
+    changeOrigin: true,
+    onProxyRes: function (proxyRes, req, res) {
+        // Forzamos la cabecera CORS en la respuesta del proxy por si Flask la omite
+        proxyRes.headers['Access-Control-Allow-Origin'] = '*';
+    }
 }));
 
-
-// Middleware para manejo de CORS (Crucial para el Frontend React)
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*'); // Permitir cualquier origen (solo para desarrollo)
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  next();
-});
-
 app.listen(PORT, () => {
-  console.log(`API Gateway escuchando en el puerto ${PORT}`);
+  console.log(`API Gateway operativo en puerto ${PORT}`);
 });

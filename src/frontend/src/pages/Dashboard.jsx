@@ -4,85 +4,71 @@ import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getLatestReadings } from '../api/api';
 import L from 'leaflet';
-// Importa el icono por defecto para que Leaflet lo encuentre (aunque usaremos iconos personalizados)
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// Importante: Eliminar la configuración de iconos por defecto si se van a usar iconos DIV personalizados
-
-// --- FUNCIÓN DE UTILIDAD: LÓGICA DE COLOR (Simulación de ICA) ---
-
-/**
- * Calcula un color basado en el valor de PM2.5 (en µg/m³).
- * Esto simula un Índice de Calidad del Aire (ICA) simplificado.
- * (Umbrales basados en valores típicos de la EPA/OMS)
- */
 const getAirQualityColor = (pm25Value) => {
-  if (pm25Value === null || pm25Value === undefined) return '#9e9e9e'; // Gris para dato no disponible
-  
-  // NIVELES DE UMBRAL (Ejemplo: OMS/EPA simplificado)
-  if (pm25Value <= 12) return '#00E400';   // Verde (Bueno)
-  if (pm25Value <= 35.4) return '#FFFF00'; // Amarillo (Moderado)
-  if (pm25Value <= 55.4) return '#FF7E00'; // Naranja (Poco Saludable)
-  if (pm25Value <= 150.4) return '#FF0000'; // Rojo (Muy Poco Saludable)
-  return '#7E0023'; // Granate (Peligroso)
+  if (pm25Value === null || pm25Value === undefined) return '#9e9e9e';
+  if (pm25Value <= 12) return '#00E400';
+  if (pm25Value <= 35.4) return '#FFFF00';
+  if (pm25Value <= 55.4) return '#FF7E00';
+  if (pm25Value <= 150.4) return '#FF0000';
+  return '#7E0023';
 };
 
-// --- FUNCIÓN PARA CREAR ÍCONO DE MARCADOR DINÁMICO (React-Leaflet Custom Icon) ---
-
 const createCustomIcon = (color) => {
-  // Crear un SVG para usar como icono, permitiendo cambiar el color
   const svg = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
     <circle cx="50" cy="50" r="40" fill="${color}" stroke="#000000" stroke-width="3" opacity="0.8"/>
     <text x="50" y="55" text-anchor="middle" font-size="20" fill="white" font-weight="bold">!</text>
   </svg>`;
-
   return L.divIcon({
     html: svg,
-    className: '', // No queremos la clase por defecto de Leaflet
-    iconSize: [30, 30], // Tamaño del ícono SVG
-    iconAnchor: [15, 15], // Centro del ícono
+    className: '',
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
     popupAnchor: [0, -15],
   });
 };
-
-// --- COMPONENTE PRINCIPAL ---
 
 const Dashboard = () => {
   const [readings, setReadings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Carga de datos al montar el componente
     const fetchReadings = async () => {
       try {
-        // La llamada está protegida con el token JWT
+        setLoading(true);
         const response = await getLatestReadings();
-        
-        // Transformación de los datos: Agrupar por estación
+
+        // DEBUG: Mira la consola del navegador (F12) para ver si llega esto
+        console.log("DATOS RECIBIDOS DE API:", response.data);
+
         const groupedReadings = response.data.reduce((acc, reading) => {
-            const key = reading.Estación_ID;
-            
-            if (!acc[key]) {
-                acc[key] = {
-                    id: key,
-                    name: reading.Nombre_Estacion || 'Estación sin nombre',
-                    lat: reading.Geolocalizacion.Latitud,
-                    lon: reading.Geolocalizacion.Longitud,
-                    latest: {}, 
-                };
-            }
-            
-            // Almacena la última lectura por tipo de contaminante
-            acc[key].latest[reading.Tipo_Contaminante] = {
-                value: reading.Valor,
-                unit: reading.Unidad,
-                timestamp: reading.Timestamp
+          // Usamos Estación_ID (con tilde) porque así viene en tu JSON
+          const key = reading.Estación_ID;
+
+          if (!acc[key]) {
+            acc[key] = {
+              id: key,
+              name: reading.Estación_Nombre || 'Sin nombre',
+              // Acceso exacto al objeto Geolocalizacion (sin tilde en la 'o')
+              lat: reading.Geolocalizacion?.lat,
+              lon: reading.Geolocalizacion?.lon,
+              latest: {},
             };
-            return acc;
+          }
+
+          acc[key].latest[reading.Tipo_Contaminante] = {
+            value: reading.Valor,
+            unit: reading.Unidad,
+            timestamp: reading.Timestamp
+          };
+          return acc;
         }, {});
 
-        // Convertir el objeto de estaciones a un array para mapear en React
-        const stationsArray = Object.values(groupedReadings);
+        const stationsArray = Object.values(groupedReadings).filter(s => s.lat != null && s.lon != null);
+
+        // DEBUG: Comprueba si este array tiene elementos
+        console.log("ESTACIONES PROCESADAS PARA MARCADORES:", stationsArray);
+
         setReadings(stationsArray);
 
       } catch (error) {
@@ -93,69 +79,50 @@ const Dashboard = () => {
     };
 
     fetchReadings();
-    
-    // Configurar una actualización periódica (cada 5 minutos)
-    const intervalId = setInterval(fetchReadings, 300000); 
-    
-    // Limpiar el intervalo al desmontar el componente
+    const intervalId = setInterval(fetchReadings, 300000);
     return () => clearInterval(intervalId);
-
   }, []);
 
-  if (loading) {
-    return <div>Cargando datos del mapa...</div>;
-  }
+  if (loading) return <div>Cargando datos del mapa...</div>;
 
-  // Coordenadas iniciales del mapa (Puedes centrarlo donde haya datos reales)
-  const centerLat = 40.4168; 
-  const centerLon = -3.7038; 
+  const centerLat = 40.4168;
+  const centerLon = -3.7038;
 
   return (
     <div style={{ height: '80vh', width: '100%' }}>
-      <h1>Dashboard Principal - Calidad del Aire ({readings.length} Estaciones Activas)</h1>
-      <MapContainer 
-        center={[centerLat, centerLon]} 
-        zoom={6} 
-        scrollWheelZoom={true}
+      <h1>Dashboard Principal ({readings.length} Estaciones Activas)</h1>
+      <MapContainer
+        center={[20, 0]} // Centro global
+        zoom={2}        // Zoom alejado
         style={{ height: '100%', width: '100%' }}
       >
-        
-        {/* Capa base del mapa (OpenStreetMap) */}
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+          attribution='&copy; OpenStreetMap contributors'
         />
 
-        {/* Mapeo de los Marcadores de Estaciones */}
         {readings.map((station) => {
-          // Obtener el valor de PM2.5 para colorear el marcador
           const pm25Reading = station.latest['PM2.5']?.value;
           const markerColor = getAirQualityColor(pm25Reading);
-          const customIcon = createCustomIcon(markerColor); // 
+          const customIcon = createCustomIcon(markerColor);
 
           return (
-            <Marker 
-              key={station.id} 
+            <Marker
+              key={station.id}
               position={[station.lat, station.lon]}
-              icon={customIcon} // Usar el ícono dinámico
+              icon={customIcon}
             >
               <Popup>
-                <strong>{station.name}</strong><br/>
-                <p>Última actualización: {station.latest['PM2.5']?.timestamp ? new Date(station.latest['PM2.5'].timestamp).toLocaleTimeString() : 'N/A'}</p>
-                {/* Muestra todos los contaminantes */}
+                <strong>{station.name}</strong><br />
+                <p>ID: {station.id}</p>
                 {Object.entries(station.latest).map(([type, data]) => (
-                    <div key={type}>
-                        <strong>{type}: </strong> 
-                        {data.value} {data.unit || 'µg/m³'}
-                    </div>
+                  <div key={type}>
+                    <strong>{type}: </strong> {data.value} {data.unit || 'µg/m³'}
+                  </div>
                 ))}
-                <hr/>
-                {/* Enlace para ver los detalles históricos (Próximo paso) */}
-                <button 
-                  onClick={() => alert(`Navegar a detalles de la estación ${station.id}`)}
-                  style={{ cursor: 'pointer', padding: '5px 10px' }}
-                >
-                    Ver Histórico
+                <hr />
+                <button onClick={() => window.location.href = `/dashboard/station/${station.id}`}>
+                  Ver Histórico
                 </button>
               </Popup>
               <Tooltip>{station.name} | PM2.5: {pm25Reading || 'N/A'}</Tooltip>

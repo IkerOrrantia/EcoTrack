@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// La URL base es el puerto del API Gateway (http://localhost:8080)
+// La URL base es el puerto del API Gateway (http://localhost:5000)
 const API_BASE_URL = 'http://localhost:8080/api/v1'; 
 
 const api = axios.create({
@@ -35,13 +35,13 @@ export const registerUser = (nombre, email, password) => {
 // --- Funciones de Datos Ambientales ---
 
 export const getLatestReadings = () => {
-  // Llama a http://localhost:8080/api/v1/data/latest
+  // Debe coincidir con @app.route('/api/v1/data/latest')
   return api.get('/data/latest');
 };
 
 export const getHistoricalData = (stationId) => {
-  // Llama a http://localhost:8080/api/v1/data/historical/{stationId}
-  return api.get(`/data/historical/${stationId}`);
+  // Debe coincidir con @app.route('/api/v1/data/history/<station_id>')
+  return api.get(`/data/history/${stationId}`);
 };
 
   // Obtiene todas las ubicaciones favoritas y sus umbrales del usuario actual. Endpoint: GET /api/v1/favorites 

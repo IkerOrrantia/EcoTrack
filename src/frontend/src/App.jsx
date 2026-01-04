@@ -4,11 +4,11 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
-// Necesitas crear estos archivos (por ahora serán componentes vacíos)
 import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import PrivateRoute from './components/PrivateRoute';
+import StationDetail from './pages/StationDetail';
 
 function App() {
     return (
@@ -30,8 +30,9 @@ function App() {
 
                         <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
 
-                        {/* Futura ruta para Detalle de Estación (Pantalla B) - Ej: /station/:id */}
-                        {/* <Route path="/station/:id" element={<StationDetail />} /> */}
+                        {/* Detalle de Estación (Pantalla B) */}
+                        <Route path="/station/:stationId" element={<StationDetail />} /> {/* <-- NUEVA RUTA */}
+                        
                     </Routes>
                 </main>
             </AuthProvider>

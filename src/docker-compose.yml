@@ -28,6 +28,7 @@ services:
       - mongodb
     environment:
       MONGO_URI: mongodb://ecouser:ecopassword@mongodb:27017/ecotrack_data?authSource=admin
+      OPENAQ_API_KEY: 1725dd31b6bc54c6e005c974d26e2ccd221f0c2d05f5f054e636ef8c98c76291
       
   # 3. Worker de Recolección (Tarea programada ETL - Python)
   data-collector-worker:
@@ -40,8 +41,9 @@ services:
     environment:
       # Debe usar la misma configuración de BBDD que el microservicio
       MONGO_URI: mongodb://ecouser:ecopassword@mongodb:27017/ecotrack_data?authSource=admin
+      OPENAQ_API_KEY: 1725dd31b6bc54c6e005c974d26e2ccd221f0c2d05f5f054e636ef8c98c76291
     # Sobreescribe el comando de inicio para ejecutar el worker.py
-    command: ["python", "worker.py"]
+    command: ["python", "-u", "worker.py"]
 
   # 4. Base de Datos Relacional (Usuarios y Preferencias - PostgreSQL)
   postgres:

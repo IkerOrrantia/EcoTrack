@@ -1,6 +1,6 @@
 // frontend/src/context/AuthContext.jsx
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { loginUser } from '../api/api';
+import { loginUser, setAuthToken } from '../api/api';
 import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
