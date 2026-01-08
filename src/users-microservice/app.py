@@ -267,6 +267,50 @@ def update_favorite_location(current_user, location_id):
         db.session.rollback()
         return jsonify({"message": "Error al actualizar", "error": str(e)}), 500
 
+@app.route('/api/v1/favorites/<int:location_id>', methods=['DELETE'])
+@token_required
+def delete_favorite_location(current_user, location_id):
+    """Elimina una ubicación favorita del usuario"""
+
+    # 1. Verificar que la ubicación pertenece al usuario
+    user_location = (db.session.query(UsuarioUbicacion)
+                     .filter(
+                         UsuarioUbicacion.id_usuario == current_user.id_usuario,
+                         UsuarioUbicacion.id_ubicacion == location_id
+                     )
+                     .first())
+
+    if not user_location:
+        return jsonify({
+            "message": "Ubicación favorita no encontrada o no pertenece al usuario"
+        }), 404
+
+    try:
+        # 2. Eliminar la relación usuario-ubicación
+        db.session.delete(user_location)
+
+        # 3. (Opcional pero recomendable)
+        # Eliminar la ubicación si no está asociada a ningún otro usuario
+        remaining_links = UsuarioUbicacion.query.filter_by(
+            id_ubicacion=location_id
+        ).count()
+
+        if remaining_links == 0:
+            location = db.session.get(UbicacionFavorita, location_id)
+            if location:
+                db.session.delete(location)
+
+        db.session.commit()
+        return '', 204  # ÉXITO SIN CONTENIDO
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            "message": "Error al eliminar la ubicación favorita",
+            "error": str(e)
+        }), 500
+
+
 # --- INICIO DE LA APLICACIÓN ---
 
 if __name__ == '__main__':

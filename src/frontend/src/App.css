@@ -90,3 +90,92 @@ body {
   border: 1px solid rgba(0,0,0,0.2);
   flex-shrink: 0;
 }
+
+/* Estilos para Login y registro */
+/* Contenedor para centrar la tarjeta en la pantalla */
+.auth-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 60px); /* Restamos la altura de la navbar */
+  width: 100%;
+}
+
+/* Tarjeta blanca */
+.auth-card {
+  background-color: #ffffff;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px; /* Tamaño estándar de login */
+  text-align: center;
+  color: #333; /* Texto oscuro para legibilidad */
+}
+
+.auth-card h2 {
+  margin-top: 0;
+  color: #355758;
+  margin-bottom: 25px;
+}
+
+.auth-card input {
+  width: 100%;
+  padding: 12px 15px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box; /* Evita que el input se salga */
+  font-size: 16px;
+}
+
+.auth-card button {
+  width: 100%;
+  padding: 14px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-top: 15px;
+}
+
+.auth-card button:hover {
+  background-color: #3d8b40;
+}
+
+.auth-card p {
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.auth-card a {
+  color: #4caf50;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* Contenedor de la rejilla con mucho más espacio */
+.favorites-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 40px;  
+  width: 100%;
+  padding: 20px 0;
+}
+
+/* Clase específica para la tarjeta de favorito para que no herede limitaciones del login */
+.favorite-card {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  color: #333;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box; 
+  border: 1px solid #ddd;
+}

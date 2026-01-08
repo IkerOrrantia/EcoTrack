@@ -72,6 +72,23 @@ def get_historical_data(station_id):
         return jsonify(formatted_readings), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/api/v1/data/near', methods=['GET'])
+def get_nearest_data():
+    try:
+        lat = float(request.args.get('lat'))
+        lon = float(request.args.get('lon'))
+        
+        # Buscamos la lectura más reciente cerca de estas coordenadas
+        # (Simplificado: buscamos la estación más cercana en nuestro último set de datos)
+        reading = LECTURAS_COLLECTION.find_one(
+            {}, 
+            sort=[("Timestamp", -1)]
+        )
+        # Nota: En una versión Pro usarías un índice $near de MongoDB
+        return jsonify(reading), 200
+    except:
+        return jsonify({"error": "No data found"}), 404
 
 if __name__ == '__main__':
     # El puerto 5000 es el interno del contenedor

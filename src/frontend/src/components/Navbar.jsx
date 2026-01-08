@@ -14,7 +14,7 @@ const Navbar = () => {
         
         {isAuthenticated ? (
           <>
-            <Link to="/profile" style={styles.link}>Perfil y Alertas</Link>
+            <Link to="/profile" style={styles.link}>Favoritos</Link>
             <button 
               onClick={logout} 
               style={styles.logoutBtn}
@@ -24,7 +24,7 @@ const Navbar = () => {
           </>
         ) : (
           <>
-            <Link to="/profile" style={styles.link}>Perfil y Alertas</Link>
+            <Link to="/profile" style={styles.link}>Favoritos</Link>
             <Link to="/login" style={styles.link}>Login</Link>
             <Link to="/register" style={styles.link}>Registro</Link>
           </>
