@@ -113,11 +113,11 @@ def run_etl_process():
         return False
 
     # 1. Obtener Metadatos de Ubicación (Lista de Estaciones)
-    print("-> 1. Obteniendo Metadatos de Ubicación en España")
+    print("-> 1. Obteniendo Metadatos de Ubicación")
     locations_data = fetch_openaq_data(
         "locations",
         # Obtenemos todas las ubicaciones y sus metadatos (incluidos sensores)
-        params={"country_iso": "Europe/Madrid", "limit": 500} 
+        params={"country_iso": "Europe/Madrid", "limit": 1000} 
     )
 
     if not locations_data or "results" not in locations_data:
@@ -177,7 +177,7 @@ def run_etl_process():
         print(f"Estación {location_id} procesada ({idx}/{len(locations)})")
 
         # Pequeña pausa para no saturar la API
-        time.sleep(0.4) 
+        time.sleep(0.6) 
 
     if not all_readings:
         print("No se obtuvieron lecturas.")
