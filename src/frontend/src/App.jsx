@@ -31,8 +31,7 @@ function App() {
                         <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
 
                         {/* Detalle de Estación (Pantalla B) */}
-                        <Route path="/station/:stationId" element={<StationDetail />} /> {/* <-- NUEVA RUTA */}
-                        
+                        <Route path="/dashboard/station/:stationId" element={<StationDetail />} />
                     </Routes>
                 </main>
             </AuthProvider>
